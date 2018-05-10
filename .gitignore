@@ -1,2 +1,7 @@
 Structuralia/__pycache__
 __pycache__
+dist
+sdist
+MANIFEST
+Structuralia.egg-info
+build
