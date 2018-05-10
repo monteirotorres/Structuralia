@@ -7,7 +7,7 @@ setup(
   author = 'Pedro Torres',
   author_email = 'monteirotorres@gmail.com',
   url = 'https://github.com/monteirotorres/Structuralia', # use the URL to the github repo
-  download_url = 'https://github.com/peterldowns/Structuralia/archive/0.1.tar.gz', # I'll explain this in a second
+  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.1.tar.gz', # I'll explain this in a second
   keywords = ['PDB', 'structure', 'protein'], # arbitrary keywords
   classifiers = [],
 )
