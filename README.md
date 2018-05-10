@@ -1,6 +1,6 @@
 # Structuralia
 
-This suite of python scripts were built to access the PDB database and both prepare inputs and read generated output files.
+This suite of python scripts was built to access the PDB database and both prepare inputs and read generated output files.
 
 It relies mainly on Biopython and Biopandas to manipulate PDB structures in convenient ways.
 
