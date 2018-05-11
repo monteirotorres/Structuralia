@@ -27,9 +27,9 @@ setup(
       'OligoState'],
   entry_points={
       'console_scripts': [
-          'AccessPDB = AccessPDB:main',
-          'OligoSum = OligoSum:main',
-          'OligoState = OligoState:main']},
+          'AccessPDB = Structuralia.AccessPDB:main',
+          'OligoSum = Structuralia.OligoSum:main',
+          'OligoState = Structuralia.OligoState:main']},
   install_requires=[
       'markdown',
       'biopandas',
