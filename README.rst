@@ -5,7 +5,7 @@ This suite of python scripts was built to access the PDB database and both prepa
 
 It relies mainly on Biopython and Biopandas to manipulate PDB structures in convenient ways.
 
-Simply run Access.py to perform some of these functions intuitively.
+Simply run AccessPDB to perform some of these functions intuitively.
 
 The Toolbox is packed up with functions that can be imported and used in your own scripts.
 
@@ -43,4 +43,4 @@ License
 
 This project is licensed under GNU license, provided along with the package - see `LICENSE`_.
 
-.. _LICENSE: LICENSE
+.. _LICENSE: https://github.com/monteirotorres/Structuralia/blob/master/LICENSE
