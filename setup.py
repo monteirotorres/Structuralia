@@ -12,20 +12,24 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
   name = 'Structuralia',
   packages = ['Structuralia'],
-  version = '0.4',
+  version = '0.5',
   description = 'A toolset to work with proteins',
   long_description = long_description,
   author = 'Pedro Torres',
   author_email = 'monteirotorres@gmail.com',
   url = 'https://github.com/monteirotorres/Structuralia',
-  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.4.tar.gz',
+  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.5.tar.gz',
   keywords = ['PDB', 'structure', 'protein'],
   classifiers = [],
   entry_points={
-       'console_scripts': [
-           'AccessPDB = AccessPDB:main',
-           'OligoSum = OligoSum:main',
-           'OligoState = OligoState:main',
-       ],
-    }
-)
+      'console_scripts': [
+          'AccessPDB = AccessPDB:main',
+          'OligoSum = OligoSum:main',
+          'OligoState = OligoState:main']},
+  install_requires=[
+      'markdown',
+      'biopandas',
+      'pandas',
+      'progressbar2',
+      'pathlib2',
+      'biopython'])

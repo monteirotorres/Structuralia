@@ -1,4 +1,5 @@
-# Structuralia
+Structuralia
+============
 
 This suite of python scripts was built to access the PDB database and both prepare inputs and read generated output files.
 
@@ -8,40 +9,34 @@ Simply run Access.py to perform some of these functions intuitively.
 
 The Toolbox is packed up with functions that can be imported and used in your own scripts.
 
-## Prerequisites
+Prerequisites
+-------------
 
 The following packages and external programs are used by Structuralia scripts and must be installed and in either the binaries path or python path.
 
-### Python packages
+- Python packages
 
-* os
-* re
-* time
-* gzip
-* urllib
-* functools
-* subprocess
-* progressbar
-* pandas
-* itertools
-* biopython
-* biopandas
-* pathlib
-* textwrap
+  - progressbar
+  - pandas
+  - biopython
+  - biopandas
+  - pathlib
 
-### External software
+- External software
 
-* TM-align
+  - TM-align
 
-## AUTHOR
+AUTHOR
+------
 
-### Pedro Torres, Ph.D
+Pedro Torres, Ph.D
 
 Department Of Biochemistry
 University of Cambridge
 80 Tennis Court Road
 Cambridge CB2 1GA
 
-## License
+License
+-------
 
 This project is licensed under GNU license, provided along with the package - see [LICENSE](LICENSE)
