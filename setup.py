@@ -22,10 +22,10 @@ setup(
   keywords = ['PDB', 'structure', 'protein'],
   classifiers = [],
   py_modules=[
-      'AccessPDB',
-      'OligoSum',
-      'OligoState',
-      'Toolbox'],
+      'Structuralia.AccessPDB',
+      'Structuralia.OligoSum',
+      'Structuralia.OligoState',
+      'Structuralia.Toolbox'],
   entry_points={
       'console_scripts': [
           'AccessPDB = Structuralia.AccessPDB:main',
