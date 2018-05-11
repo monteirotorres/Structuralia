@@ -52,7 +52,7 @@ import Bio.pairwise2 as bpw2
 import Bio.PDB.Polypeptide as bpp_poly
 from biopandas.pdb import PandasPdb
 from progressbar import progressbar as pg
-from Structuralia.Structuralia.TimeWrap import timed
+from TimeWrap import timed
 
 # Classes
 ###############################################################################

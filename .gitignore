@@ -5,3 +5,4 @@ sdist
 MANIFEST
 Structuralia.egg-info
 build
+.setup.py.swp

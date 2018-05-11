@@ -1,4 +1,4 @@
-#!/opt/anaconda3/bin/python
+#!/usr/bin/env python3
 # License
 ###############################################################################
 '''
@@ -36,7 +36,7 @@ Developed by: Pedro Torres
 '''
 # Imports
 ###############################################################################
-import Structuralia.Structuralia.Toolbox as strtools
+import Toolbox as strtools
 
 # Dictionaries
 ###############################################################################

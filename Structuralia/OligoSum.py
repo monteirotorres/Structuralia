@@ -1,4 +1,4 @@
-#!/opt/anaconda3/bin/python
+#!/usr/bin/env python3
 # License
 ###############################################################################
 '''
@@ -48,7 +48,7 @@ import os
 import pandas as pd
 from progressbar import progressbar as pg
 from pathlib import Path
-import Structuralia.Structuralia.Toolbox as strtools
+import Toolbox as strtools
 
 # Dictionaries
 ###############################################################################

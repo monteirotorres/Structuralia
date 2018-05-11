@@ -16,8 +16,10 @@ The following packages and external programs are used by Structuralia scripts an
 
 * os
 * re
+* time
 * gzip
 * urllib
+* functools
 * subprocess
 * progressbar
 * pandas

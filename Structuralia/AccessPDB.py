@@ -1,4 +1,4 @@
-#!/opt/anaconda3/bin/python
+#!/usr/bin/env python3
 # License
 ###############################################################################
 '''
@@ -29,7 +29,7 @@ E-mail address: monteirotorres@gmail.com
 ###############################################################################
 import os
 import textwrap as tw
-import Structuralia.Structuralia.Toolbox as strtools
+import Toolbox as strtools
 
 
 # Main Function
