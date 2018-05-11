@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 # To use a consistent encoding
 from codecs import open
 from os import path
@@ -11,14 +11,14 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
   name = 'Structuralia',
-  packages = find_packages(),
-  version = '0.904',
+  packages = ['Structuralia'],
+  version = '0.905',
   description = 'A toolset to work with proteins',
   long_description = long_description,
   author = 'Pedro Torres',
   author_email = 'monteirotorres@gmail.com',
   url = 'https://github.com/monteirotorres/Structuralia',
-  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.904.tar.gz',
+  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.905.tar.gz',
   keywords = ['PDB', 'structure', 'protein'],
   classifiers = [],
   py_modules=[
