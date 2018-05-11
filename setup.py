@@ -11,7 +11,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
   name = 'Structuralia',
-  packages = ['Structuralia'],
+  packages = find_packages(),
   version = '0.6',
   description = 'A toolset to work with proteins',
   long_description = long_description,
