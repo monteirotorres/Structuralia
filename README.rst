@@ -39,4 +39,4 @@ Cambridge CB2 1GA
 License
 -------
 
-This project is licensed under GNU license, provided along with the package - see [LICENSE](LICENSE)
+This project is licensed under GNU license, provided along with the package - see `LICENSE <LICENSE>`
