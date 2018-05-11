@@ -48,7 +48,7 @@ import os
 import pandas as pd
 from progressbar import progressbar as pg
 from pathlib import Path
-import Toolbox as strtools
+import Structuralia.Toolbox as strtools
 
 # Dictionaries
 ###############################################################################

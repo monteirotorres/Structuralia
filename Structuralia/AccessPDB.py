@@ -29,7 +29,7 @@ E-mail address: monteirotorres@gmail.com
 ###############################################################################
 import os
 import textwrap as tw
-import Toolbox as strtools
+import Structuralia.Toolbox as strtools
 
 
 # Main Function

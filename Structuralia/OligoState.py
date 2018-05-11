@@ -36,7 +36,7 @@ Developed by: Pedro Torres
 '''
 # Imports
 ###############################################################################
-import Toolbox as strtools
+import Structuralia.Toolbox as strtools
 
 # Dictionaries
 ###############################################################################
