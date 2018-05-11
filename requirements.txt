@@ -1,0 +1,6 @@
+biopandas==0.2.3
+pandas==0.22.0
+setuptools==38.4.0
+progressbar2==3.37.1
+biopython==1.71
+pathlib2==2.3.0

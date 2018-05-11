@@ -12,20 +12,20 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
   name = 'Structuralia',
   packages = ['Structuralia'],
-  version = '0.3',
+  version = '0.4',
   description = 'A toolset to work with proteins',
   long_description = long_description,
   author = 'Pedro Torres',
   author_email = 'monteirotorres@gmail.com',
   url = 'https://github.com/monteirotorres/Structuralia',
-  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.3.tar.gz',
+  download_url = 'https://github.com/monteirotorres/Structuralia/archive/0.4.tar.gz',
   keywords = ['PDB', 'structure', 'protein'],
   classifiers = [],
   entry_points={
        'console_scripts': [
-           'AccessPDB = Structuralia.AccessPDB:main',
-           'OligoSum = Structuralia.OligoSum:main',
-           'OligoState = Structuralia.OligoState:main',
+           'AccessPDB = AccessPDB:main',
+           'OligoSum = OligoSum:main',
+           'OligoState = OligoState:main',
        ],
     }
 )
