@@ -9,6 +9,18 @@ Simply run AccessPDB to perform some of these functions intuitively.
 
 The Toolbox is packed up with functions that can be imported and used in your own scripts.
 
+Installation
+************
+The scripts are available as a `PyPi project`_. Just install them with:
+
+.. _`PyPi project`: https://pypi.org/project/Structuralia/
+
+
+
+:code:`pip install Structuralia`
+
+
+
 Prerequisites
 *************
 
@@ -22,11 +34,17 @@ Python packages
   - biopython
   - biopandas
   - pathlib
+  - parasail
 
-External software
-=================
+External software (must be installed separately)
+================================================
 
-  - TM-align
+  - `TM-align`_
+  - `GESAMT`_
+
+.. _`TM-align`: https://zhanglab.ccmb.med.umich.edu/TM-align/
+.. _`GESAMT`: http://www.ccp4.ac.uk/html/gesamt.html
+
 
 Author
 ******

@@ -30,13 +30,13 @@ E-mail address: monteirotorres@gmail.com
 import os
 import textwrap as tw
 import Structuralia.Toolbox as strtools
+from Structuralia.GlobalVars import *
 
 
 # Main Function
 ###############################################################################
 
 def main():
-    strtools.set_globals()
     print(tw.dedent("""\
           Structuralia  Copyright (C) 2018  Pedro H. M. Torres
           This program comes with ABSOLUTELY NO WARRANTY
@@ -54,10 +54,17 @@ def main():
           them according to oligomeric state.
           5) Simply clean the PDB files in a directory.
           6) Select a single chain from PDB files in the directory and write
-          them in a sub-directory
+          them in a sub-directory.
+          7) Clean and sort a local copy of the PDB database, organized in the
+          default "divided" scheme.
+          8) Creates a folder containing PDB files with at least one chain
+          longer than a desired value.
+          9) Creates a FASTA file containing the sequences of all pdbs in the
+          current directory.
 
           """))
     pdb_dir = os.getcwd()
+    os.chdir(pdb_dir)
     option = input('Chose one of the options: ')
     if option == '1':
         cutoff = input('\nChose a cutoff. Available options are: 30, 40, 50, 70, 90, 95 and 100.\n')
@@ -74,6 +81,14 @@ def main():
         strtools.clean_pdb_files(pdb_dir)
     elif option == '6':
         strtools.single_chain(pdb_dir)
+    elif option == '7':
+        pdb_base = input('\nPlease indicate the directory containing the pdb database:\n')
+        strtools.clean_and_sort_PDB(pdb_base)
+    elif option == '8':
+        length = input('\nPlease select minimum chain length:\n')
+        strtools.min_chain_length(pdb_dir, length)
+    elif option == '9':
+        strtools.pdb_to_fasta(pdb_dir)
     else:
         print('\n Sorry, you did not select a valid option.\n\n Try again.')
 

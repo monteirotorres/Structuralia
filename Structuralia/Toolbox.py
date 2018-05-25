@@ -43,9 +43,11 @@ import os
 import re
 import gzip
 import urllib
+import shutil
 import subprocess
 import progressbar
 import pandas as pd
+import textwrap as tw
 import itertools as it
 import Bio.PDB as bpp
 import Bio.pairwise2 as bpw2
@@ -53,6 +55,8 @@ import Bio.PDB.Polypeptide as bpp_poly
 from biopandas.pdb import PandasPdb
 from progressbar import progressbar as pg
 from Structuralia.TimeWrap import timed
+from Structuralia.GlobalVars import *
+
 
 # Classes
 ###############################################################################
@@ -87,30 +91,6 @@ class SelectChain(bpp.Select):
 
 # Functions
 ###############################################################################
-
-# @timed
-def set_globals():
-    '''
-    Set most widely used global variables across the Structuralia scripts.
-    Called by: AccessPDB.py|main()
-               OligoSum.py|main()
-               OligoState.py|main()
-
-    '''
-    global workdir
-    global oligo_dict
-    global p
-    global io
-    global widgets
-    workdir = os.getcwd()+'/'
-    oligo_dict = {1: 'MONOMERIC', 2: 'DIMERIC', 3: 'TRIMERIC', 4: 'TETRAMERIC',
-                  5: 'PENTAMERIC', 6: 'HEXAMERIC'}
-    p = bpp.PDBParser(PERMISSIVE=0, QUIET=True)
-    io = bpp.PDBIO()
-    widgets = [' [', progressbar.SimpleProgress(), '] ',
-               progressbar.Bar(),
-               progressbar.Percentage(),
-               ' (', progressbar.AdaptiveETA(), ') ']
 
 
 # @timed
@@ -148,7 +128,7 @@ def download_nr(pdb_dir, cutoff):
     '''
     Downloads representative PDB files into
     specified directory. (Option 1)
-    Called by: AccessPDB.py|main()
+    Called by: AccessPDB.py:main()
     '''
     pdb_codes = get_nr_list(cutoff)
     pdbl = bpp.PDBList()
@@ -159,7 +139,7 @@ def download_nr(pdb_dir, cutoff):
 def extract_nr(list_file):
     '''
     Extract a list of non-redundant PDBs from a given list. (Option 2)
-    Called by: AccessPDB.py|main()
+    Called by: AccessPDB.py:main()
     '''
     nr_list = get_nr_list()
     pdb_list = read_list_file(list_file)
@@ -175,12 +155,26 @@ def download_pdblist(pdb_dir, list_file):
     '''
     Uses Biopython to download a list of PDBs into specified directory.
     (Option 3)
-    Called by: AccessPDB.py|main()
+    Called by: AccessPDB.py:main()
     '''
     pdb_codes = read_list_file(list_file)
     pdbl = bpp.PDBList()
     pdbl.download_pdb_files(pdb_codes, pdir=pdb_dir, file_format='pdb')
 
+def parse_pdb(pdb_dir, pdb):
+    if pdb.endswith(".ent") or pdb.endswith(".pdb") or pdb.endswith(".ent.gz"):
+        pdb_name = pdb.split('.')[0].split("/")[-1]
+        if pdb.endswith(".ent.gz"):
+            pdb_file = gzip.open(pdb_dir+'/'+pdb, 'rt')
+            contents = gzip.open(pdb_dir+'/'+pdb, 'rt').read()
+        else:
+            pdb_file = open(pdb_dir+'/'+pdb)
+            contents = open(pdb_dir+'/'+pdb, 'rt').read()
+        try:
+            structure = p.get_structure(pdb_name, pdb_file)
+        except:
+            print("Structure "+pdb_name+" could not be strictly parsed.")
+    return pdb_name, pdb_file, structure, contents
 
 # @timed
 def extract_seqs(structure, defmodel):
@@ -193,6 +187,7 @@ def extract_seqs(structure, defmodel):
     for model in structure:
         if model.id == defmodel:
             seqs = []
+            chain_ids = []
             for chain in model:
                 nchains += 1
                 seqlist = []
@@ -205,20 +200,17 @@ def extract_seqs(structure, defmodel):
                         seqlist.append('X')
                 seq = str("".join(seqlist))
                 seqs.append(seq)
-    return nchains, seqs
+                chain_ids.append(chain.id)
+    return nchains, seqs, chain_ids
 
 
 # @timed
-def author_agrees(oligo_dict, pdb, nchains):
+def author_agrees(oligo_dict, contents, nchains):
     '''
     Searches in the original PDB file for the oligomeric
     status determined by the author.
     Called by: clean_and_sort()
     '''
-    if pdb.endswith('ent.gz'):
-        contents = gzip.open(pdb, 'rt').read()
-    else:
-        contents = open(pdb, 'r').read()
     pattern = r"AUTHOR DETERMINED BIOLOGICAL UNIT: "+oligo_dict[nchains]
     if re.search(pattern, contents):
         return True
@@ -267,10 +259,10 @@ def clean_pdb_files(pdb_dir):
     '''
     Iterates over files in given directory and uses clean_pdb
     function to write PDB files containing only amino_acids. (Option 5)
-    Called by: AccessPDB.py|main()
+    Called by: AccessPDB.py:main()
     '''
-    clean_dir = pdb_dir+"/clean/"
-    os.makedirs(clean_dir)
+    clean_dir = "clean"
+    os.mkdir(clean_dir)
     print('\n\nCleaning PDB files...\n')
     for pdb in pg(os.listdir(pdb_dir), widgets=widgets):
         if pdb.endswith(".ent") or pdb.endswith(".pdb") or pdb.endswith(".ent.gz"):
@@ -291,12 +283,15 @@ def clean_pdb_files(pdb_dir):
 def clean_and_sort(pdb_dir):
     '''
     Make clean directory and homo multimer subdirectories (Option 4)
-    Called by: AccessPDB.py|main()
+    Called by: AccessPDB.py:main()
     '''
-    clean_dir = pdb_dir+"/clean/"
-    os.makedirs(clean_dir)
-    for i in range(1, 7):
-        os.mkdir(clean_dir+'/'+str(i)+'mers')
+    clean_dir = "clean/"
+    try:
+        os.mkdir(clean_dir)
+        for i in range(1, 7):
+            os.mkdir(clean_dir+'/'+str(i)+'mers')
+    except:
+        pass
     '''
     Loop through pdb files to detect homo get_oligomeric_status
     '''
@@ -305,8 +300,10 @@ def clean_and_sort(pdb_dir):
             pdb_name = pdb.split('.')[0].split("/")[-1]
             if pdb.endswith(".ent.gz"):
                 pdb_file = gzip.open(pdb_dir+'/'+pdb, 'rt')
+                contents = gzip.open(pdb_dir+'/'+pdb, 'rt').read()
             else:
-                pdb_file = pdb_dir+'/'+pdb
+                pdb_file = open(pdb_dir+'/'+pdb)
+                contents = open(pdb_dir+'/'+pdb, 'rt').read()
             try:
                 structure = p.get_structure(pdb_name, pdb_file)
             except:
@@ -315,7 +312,7 @@ def clean_and_sort(pdb_dir):
             nchains, seqs = extract_seqs(structure, 0)
             print("\n\nAssessing "+pdb_name+". This PDB has got "+str(nchains)+" chain(s).")
             if 2 <= nchains <= 6:
-                if author_agrees(oligo_dict, pdb, nchains):
+                if author_agrees(oligo_dict, contents, nchains):
                     print("Author agrees that "+pdb_name+" is "+oligo_dict[nchains]+" and IDs will be checked.")
                     ids = get_ids(seqs, nchains)
                     if all(id > 90 for id in ids):
@@ -330,7 +327,7 @@ def clean_and_sort(pdb_dir):
                 else:
                     print("Author disagrees. Although PDB has "+str(nchains)+" chains, likely not "+oligo_dict[nchains]+".\n\n")
             elif nchains == 1:
-                if author_agrees(oligo_dict, pdb, nchains):
+                if author_agrees(oligo_dict, contents, nchains):
                     print("Author agrees that "+pdb_name+" is "+oligo_dict[nchains]+". Cleaning and sorting.\n\n")
                     if clean_pdb(structure, pdb_name, clean_dir):
                         os.rename(clean_dir+pdb_name+'.clean.pdb',
@@ -348,7 +345,7 @@ def single_chain(pdb_dir):
     '''
     Iterates through a directory and uses Biopython to
     select and write the first chain from each pdb.
-    Called by: AccessPDB.py|main() (Option 6)
+    Called by: AccessPDB.py:main() (Option 6)
     '''
     single_chain_dir = pdb_dir+"/SingleChains/"
     os.makedirs(single_chain_dir)
@@ -378,7 +375,7 @@ def single_chain(pdb_dir):
 def count_chains(structure):
     '''
     Uses Biopython to obtain the number of chains.
-    Called by: OligoSum.py|main()
+    Called by: OligoSum.py:main()
     '''
     nchains = 0
     for model in structure:
@@ -397,7 +394,7 @@ def merge_chains(pdb_file):
     Uses Biopandas to merge the chains of a pdb file into a single chain "A",
     renumber the residues, removes TER entries and saves a pdb file.
     Also returns the name of the created file.
-    Called by: OligoSum.py|main()
+    Called by: OligoSum.py:main()
     '''
     merged_file = pdb_file[:-4]+'.merged.pdb'
     prot = PandasPdb().read_pdb(pdb_file)
@@ -428,7 +425,7 @@ def run_tmalign(modeled, original):
     Externally runs the TMalign executable and returns the number of
     aligned residues, the RMSD and TM-Score values normalized by the
     length of the modeled structure.
-    Called by: OligoSum.py|main()
+    Called by: OligoSum.py:main()
     '''
     tm_result = str(subprocess.check_output(['TMalign', modeled, original]))
     tm_split = re.split(',|=|\n|\\\\n|\(', tm_result)
@@ -437,3 +434,56 @@ def run_tmalign(modeled, original):
     rmsd = float(tm_split[25])
     tmscore = float(tm_split[33])
     return aligned, rmsd, tmscore
+
+
+def clean_and_sort_PDB(pdb_base):
+    '''
+    Runs the clean and sort function for the whole pdb database, considering
+    the divided scheme adopted by RCSB, in which the subdirectories are
+    the two middle characters in the PDB code.
+    Called by: AccessPDB.py:main() (option 7)
+    '''
+    os.chdir(os.getcwd())
+    for dir in os.listdir(pdb_base):
+        subfolder = pdb_base+'/'+dir
+        clean_and_sort(subfolder)
+
+def min_chain_length(pdb_dir, length):
+    '''
+    Iterates over PDB files in directory, checks the chain lenght for each
+    chain and copies the ones in which at least one chain has more than the
+    desired length.
+    Called by: AccessPDB.py:main() (option 8)
+    '''
+    filtered_dir = 'Over'+length
+    os.mkdir(filtered_dir)
+    for pdb in pg(os.listdir(pdb_dir), widgets=widgets):
+        try:
+            pdb_name, pdb_file, structure, contents = parse_pdb(pdb_dir, pdb)
+        except:
+            continue
+        nchains, seqs = extract_seqs(structure, 0)
+        if all(len(seq) < int(length) for seq in seqs):
+            continue
+        else:
+            shutil.copyfile(pdb_dir+'/'+pdb_name+'.pdb',
+                            pdb_dir+'/'+filtered_dir+'/'+pdb_name+'.pdb')
+
+def pdb_to_fasta(pdb_dir):
+    '''
+    Simply iterates over the PDB files in the current directory and creates
+    a FASTA file containing entries for each chain of all PDBs.
+    Called by: AccessPDB.py:main() (option 9)
+    '''
+    fasta_file = pdb_dir.split("/")[-1]+'.fasta'
+    for pdb in pg(os.listdir(pdb_dir), widgets=widgets):
+        try:
+            pdb_name, pdb_file, structure, contents = parse_pdb(pdb_dir, pdb)
+        except:
+            continue
+        nchains, seqs, chain_ids = extract_seqs(structure, 0)
+        with open(fasta_file, 'a') as f:
+            for seq, chain_id in zip(seqs, chain_ids):
+                wrapped_seq = "\n".join(tw.wrap(seq))
+                fasta_entry = '>'+pdb_name+':'+str(chain_id)+'\n'+wrapped_seq+'\n\n'
+                f.write(fasta_entry)

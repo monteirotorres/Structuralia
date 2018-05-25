@@ -49,6 +49,8 @@ import pandas as pd
 from progressbar import progressbar as pg
 from pathlib import Path
 import Structuralia.Toolbox as strtools
+from Structuralia.GlobalVars import *
+
 
 # Dictionaries
 ###############################################################################
@@ -78,7 +80,6 @@ solutions_list = []
 
 
 def main():
-    strtools.set_globals()
     assert not os.path.isfile('OligoSum.csv'), '\033[1;31;40m \n\n File OligoSum.csv exists. Get rid of it.\n'
     results = open('OligoSum.csv', 'a')
     results.write('PDB ID,Chain length,Was Available,No of templates,Template,Is Same,ID,Gesamt Rank,Model Chains, Orig Chains, RMSD, Aligned (%), TM-Score\n')
