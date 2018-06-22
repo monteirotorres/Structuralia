@@ -52,6 +52,8 @@ import textwrap as tw
 import subprocess
 import numpy as np
 import parasail
+from functools import partial
+from multiprocessing import Pool
 
 # Dictionaries
 ###############################################################################
@@ -75,13 +77,14 @@ structure:
 Note that oligo_equivalence is a binary variable which evaluates to
 1 when the oligomeric state of both sequences is the same.
 '''
-def make_stack_simple(id_seq_oligo_list):
+def make_stack_simple(pair, id_seq_oligo_list):
     '''
     Using simple pairwise module from Biopython.
     Called by: OligoState.py:main()
     '''
-    stack = []
-    for a, b in pg(it.combinations(range(len(id_seq_oligo_list)), 2), widgets=widgets):
+    with open('stack.dat', 'a') as stack:
+        a=pair[0]
+        b=pair[1]
         line = []
         line.append(id_seq_oligo_list[a][0])
         line.append(id_seq_oligo_list[b][0])
@@ -94,20 +97,18 @@ def make_stack_simple(id_seq_oligo_list):
             line.append(1)
         else:
             line.append(0)
-        stack.append(line)
-    for entry in range(len(id_seq_oligo_list)):
-        stack.append(make_diagonal(id_seq_oligo_list, entry))
-    return stack
+        stack.writelines(str(line[0])+','+str(line[1])+','+str(line[2])+','+str(line[3])+'\n')
 
 
-def make_stack_matrix(id_seq_oligo_list):
+def make_stack_matrix(pair, id_seq_oligo_list):
     '''
     Using pairwise module from Biopython and employing blosum62
     substitution matrix.
     Called by: OligoState.py:main()
     '''
-    stack = []
-    for a, b in pg(it.combinations(range(len(id_seq_oligo_list)), 2), widgets=widgets):
+    with open('stack.dat', 'a') as stack:
+        a=pair[0]
+        b=pair[1]
         line = []
         line.append(id_seq_oligo_list[a][0])
         line.append(id_seq_oligo_list[b][0])
@@ -125,19 +126,17 @@ def make_stack_matrix(id_seq_oligo_list):
             line.append(1)
         else:
             line.append(0)
-        stack.append(line)
-    for entry in range(len(id_seq_oligo_list)):
-        stack.append(make_diagonal(id_seq_oligo_list, entry))
-    return stack
+        stack.writelines(str(line[0])+','+str(line[1])+','+str(line[2])+','+str(line[3])+'\n')
 
 
-def make_stack_gesamt(id_seq_oligo_list):
+def make_stack_gesamt(pair, id_seq_oligo_list):
     '''
     Using structural alignment (gesamt) to calculate identities.
     Called by: OligoState.py:main()
     '''
-    stack = []
-    for a, b in pg(it.combinations(range(len(id_seq_oligo_list)), 2),widgets=widgets):
+    with open('stack.dat', 'a') as stack:
+        a=pair[0]
+        b=pair[1]
         apdb = str(id_seq_oligo_list[a][0])+'.pdb'
         bpdb = str(id_seq_oligo_list[b][0])+'.pdb'
         line = []
@@ -152,18 +151,17 @@ def make_stack_gesamt(id_seq_oligo_list):
             line.append(1)
         else:
             line.append(0)
-        stack.append(line)
-    for entry in range(len(id_seq_oligo_list)):
-        stack.append(make_diagonal(id_seq_oligo_list, entry))
-    return stack
+        stack.writelines(str(line[0])+','+str(line[1])+','+str(line[2])+','+str(line[3])+'\n')
 
-def make_stack_parasail(id_seq_oligo_list):
+
+def make_stack_parasail(pair, id_seq_oligo_list):
     '''
     Using simple pairwise module from Biopython.
     Called by: OligoState.py:main()
     '''
-    stack = []
-    for a, b in pg(it.combinations(range(len(id_seq_oligo_list)), 2), widgets=widgets):
+    with open('stack.dat', 'a') as stack:
+        a=pair[0]
+        b=pair[1]
         line = []
         line.append(id_seq_oligo_list[a][0])
         line.append(id_seq_oligo_list[b][0])
@@ -171,16 +169,14 @@ def make_stack_parasail(id_seq_oligo_list):
                                                  id_seq_oligo_list[a][1],
                                                  10, 1,
                                                  parasail.blosum62)
-        percent_id = alignment.matches/alignment.length*100
+        percent_id = (alignment.matches)/alignment.length*100
         line.append(percent_id)
         if id_seq_oligo_list[a][2] == id_seq_oligo_list[b][2]:
             line.append(1)
         else:
             line.append(0)
-        stack.append(line)
-    for entry in range(len(id_seq_oligo_list)):
-        stack.append(make_diagonal(id_seq_oligo_list, entry))
-    return stack
+        stack.writelines(str(line[0])+','+str(line[1])+','+str(line[2])+','+str(line[3])+'\n')
+
 
 
 def make_diagonal(id_seq_oligo_list, entry):
@@ -199,10 +195,10 @@ def make_diagonal(id_seq_oligo_list, entry):
     return line
 
 
-def bin_stack(stack):
+def bin_stack(stackfile):
     binned_stacks = []
     for bin in range(1, 101):
-        binned_stacks.append([line for line in stack if bin-1 < line[2] < bin])
+        binned_stacks.append([line for line in open('stack.dat').readlines() if bin-1 < float(line.split(',')[2]) < bin])
     return binned_stacks
 
 # Main Function
@@ -231,7 +227,11 @@ def main():
         print('\nNot a valid option.\n')
         exit()
     prefix = input('\nPlease enter an output files prefix: ')
+    pdb_dir = '/home/torres/work/oligostate/test/Over90/smaller'
+    os.chdir(pdb_dir)
     pdb_dir = os.getcwd()
+    with open('stack.dat', 'w+'):
+        pass
     id_seq_oligo_list = []
     for pdb in os.listdir():
         if pdb.endswith(".ent") or pdb.endswith(".pdb") or pdb.endswith(".ent.gz"):
@@ -252,22 +252,31 @@ def main():
                 id_seq_oligo.append(seq)
                 id_seq_oligo.append(pdb_name.split('-')[0])
                 id_seq_oligo_list.append(id_seq_oligo)
+    pairs = list(it.combinations(range(len(id_seq_oligo_list)), 2))
+    po = Pool()
     if option == '1':
-        stack = make_stack_simple(id_seq_oligo_list)
+        f=partial(make_stack_simple, id_seq_oligo_list=id_seq_oligo_list)
+        po.imap(f, pairs)
     elif option == '2':
-        stack = make_stack_matrix(id_seq_oligo_list)
+        f=partial(make_stack_matrix, id_seq_oligo_list=id_seq_oligo_list)
+        po.imap(f, pairs)
     elif option == '3':
-        stack = make_stack_gesamt(id_seq_oligo_list)
+        f=partial(make_stack_gesamt, id_seq_oligo_list=id_seq_oligo_list)
+        po.imap(f, pairs)
     elif option == '4':
-        stack = make_stack_parasail(id_seq_oligo_list)
+        f=partial(make_stack_parasail, id_seq_oligo_list=id_seq_oligo_list)
+        po.imap(f, pairs)
+    with open('stack.dat', 'a') as stack:
+        for entry in range(len(id_seq_oligo_list)):
+            line=make_diagonal(id_seq_oligo_list, entry)
+            stack.writelines(str(line[0])+','+str(line[1])+','+str(line[2])+','+str(line[3])+'\n')
+    stack = pd.read_csv('stack.dat', header=None)
     df = pd.DataFrame(stack, index=None, columns=None)
     df = pd.crosstab(index=df[0],columns=df[1], values=df[2], aggfunc='sum' , margins=False, dropna=True).fillna(0)
-    #a = a.set_index([0,1])[2].unstack().fillna(0)
-    #a = a.pivot(0,1,2).fillna(0)
     df = np.around(df, decimals=2)
     df = df+df.T-np.diag(df.values.diagonal())
     df.to_csv(prefix+'-matrix.csv')
-    binned_stacks = bin_stack(stack)
+    binned_stacks = bin_stack('stack.dat')
     nbin = 0
     nbins = []
     bin_counts = []

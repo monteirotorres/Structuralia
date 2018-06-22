@@ -44,6 +44,7 @@ import re
 import gzip
 import urllib
 import shutil
+import parasail
 import subprocess
 import progressbar
 import pandas as pd
@@ -84,6 +85,16 @@ class SelectChain(bpp.Select):
 
     def accept_chain(self, chain):
         if chain.id == self.chain_id:
+            return 1
+        else:
+            return 0
+
+class SelectResidues(bpp.Select):
+    def __init__(self, reslist):
+        self.reslist = reslist
+
+    def accept_residue(self, residue):
+        if residue in self.reslist:
             return 1
         else:
             return 0
@@ -219,7 +230,7 @@ def author_agrees(oligo_dict, contents, nchains):
 
 
 # @timed
-def get_ids(seqs, nchains):
+def get_pairwise_ids(seqs, nchains):
     '''
     Receives a list of sequences and calculates the identity matrix
     among them, as a list, using Biopython and itertools.
@@ -227,8 +238,9 @@ def get_ids(seqs, nchains):
     '''
     ids = []
     for a, b in it.combinations(range(nchains), 2):
-        score = bpw2.align.globalxx(seqs[a], seqs[b])[0][2]
-        percent_id = score*100/len(seqs[a])
+        alignment = parasail.nw_stats_striped_16(seqs[b], seqs[a], 10, 1,
+                                                 parasail.blosum62)
+        percent_id = (alignment.matches)/alignment.length*100
         ids.append(percent_id)
     return ids
 
@@ -309,12 +321,13 @@ def clean_and_sort(pdb_dir):
             except:
                 print("Structure "+pdb_name+" could not be strictly parsed.")
                 continue
-            nchains, seqs = extract_seqs(structure, 0)
+            nchains, seqs, chid = extract_seqs(structure, 0)
+            del chid
             print("\n\nAssessing "+pdb_name+". This PDB has got "+str(nchains)+" chain(s).")
             if 2 <= nchains <= 6:
                 if author_agrees(oligo_dict, contents, nchains):
                     print("Author agrees that "+pdb_name+" is "+oligo_dict[nchains]+" and IDs will be checked.")
-                    ids = get_ids(seqs, nchains)
+                    ids = get_pairwise_ids(seqs, nchains)
                     if all(id > 90 for id in ids):
                         print("All identities over 90%. Likely homo-oligomer. Cleaning and sorting.\n\n")
                         if clean_pdb(structure, pdb_name, clean_dir):
