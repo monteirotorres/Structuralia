@@ -227,8 +227,6 @@ def main():
         print('\nNot a valid option.\n')
         exit()
     prefix = input('\nPlease enter an output files prefix: ')
-    pdb_dir = '/home/torres/work/oligostate/test/Over90/smaller'
-    os.chdir(pdb_dir)
     pdb_dir = os.getcwd()
     with open('stack.dat', 'w+'):
         pass
@@ -275,7 +273,7 @@ def main():
     df = pd.crosstab(index=df[0],columns=df[1], values=df[2], aggfunc='sum' , margins=False, dropna=True).fillna(0)
     df = np.around(df, decimals=2)
     df = df+df.T-np.diag(df.values.diagonal())
-    df.to_csv(prefix+'-matrix.csv')
+    df.to_csv(prefix+'matrix.csv')
     binned_stacks = bin_stack('stack.dat')
     nbin = 0
     nbins = []
