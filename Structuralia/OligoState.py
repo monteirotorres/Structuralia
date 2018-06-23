@@ -264,6 +264,8 @@ def main():
     elif option == '4':
         f=partial(make_stack_parasail, id_seq_oligo_list=id_seq_oligo_list)
         po.imap(f, pairs)
+    po.close()
+    po.join()
     with open('stack.dat', 'a') as stack:
         for entry in range(len(id_seq_oligo_list)):
             line=make_diagonal(id_seq_oligo_list, entry)
