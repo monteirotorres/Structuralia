@@ -100,6 +100,16 @@ class SelectResidues(bpp.Select):
             return 0
 
 
+class SelectAtoms(bpp.Select):
+    def __init__(self, atomlist):
+        self.atomlist = atomlist
+
+    def accept_atom(self, atom):
+        if atom in self.atomlist:
+            return 1
+        else:
+            return 0
+
 # Functions
 ###############################################################################
 
@@ -173,7 +183,7 @@ def download_pdblist(pdb_dir, list_file):
     pdbl.download_pdb_files(pdb_codes, pdir=pdb_dir, file_format='pdb')
 
 def parse_pdb(pdb_dir, pdb):
-    if pdb.endswith(".ent") or pdb.endswith(".pdb") or pdb.endswith(".ent.gz"):
+    if pdb.endswith(".ent") or pdb.endswith(".pdb") or pdb.endswith(".ent.gz") or pdb.endswith(".pdb1") or pdb.endswith(".pdb1.gz") or pdb.endswith(".pdb.gz"):
         pdb_name = pdb.split('.')[0].split("/")[-1]
         if pdb.endswith(".ent.gz"):
             pdb_file = gzip.open(pdb_dir+'/'+pdb, 'rt')
@@ -185,7 +195,29 @@ def parse_pdb(pdb_dir, pdb):
             structure = p.get_structure(pdb_name, pdb_file)
         except:
             print("Structure "+pdb_name+" could not be strictly parsed.")
+    else:
+        raise FormatError('Looks like you have not selected a pdb-related structure format.')
+
     return pdb_name, pdb_file, structure, contents
+
+
+def parse_pdb_structure(pdb):
+    if pdb.endswith(".ent") or pdb.endswith(".pdb") or pdb.endswith(".ent.gz") or pdb.endswith(".pdb1") or pdb.endswith(".pdb1.gz") or pdb.endswith(".pdb.gz"):
+        pdb_name = pdb.split('.')[0].split("/")[-1][-4:]
+        if pdb.endswith(".gz"):
+            pdb_file = gzip.open(pdb, 'rt')
+        else:
+            pdb_file = open(pdb)
+        try:
+            structure = p.get_structure(pdb_name, pdb_file)
+            nchains = len(bpp.Selection.unfold_entities(structure, 'C'))
+        except:
+            print("Structure "+pdb_name+" could not be strictly parsed.")
+        return pdb_name, structure, nchains
+    else:
+        print(clrs['y']+pdb+clrs['n']+' not a pdb-related structure format.'+clrs['r']+' SKIPPING!'+clrs['n'])
+
+
 
 # @timed
 def extract_seqs(structure, defmodel):
