@@ -3,6 +3,7 @@
 ###############################################################################
 import os
 import sys
+import time
 import argparse
 import collections
 import pandas as pd
@@ -79,7 +80,7 @@ def make_diagonal(core, entry):
     return line
 
 
-def get_knots(pdb, cutoff, cluster_cutoff, verbosity):
+def get_knots(pdb, cutoff, cluster_cutoff, genpdb, verbosity):
     '''
     Main routine, uses biopython and pandas to detect knots and cluster them
     through the implementation of the average linkage algorithm
@@ -89,7 +90,7 @@ def get_knots(pdb, cutoff, cluster_cutoff, verbosity):
         pdb_name, structure, nchains = strtools.parse_pdb_structure(pdb)
         print(str('\n'+clrs['p']+pdb+clrs['n']))
         with open('KnotScope.log', 'a') as log:
-            log.write(str('>'+pdb+'\n'))
+            log.write(str('\n[STRUCTURE],'+pdb+'\n'))
         mainchain = [atom for atom in bpp.Selection.unfold_entities(structure[0], 'A') if bpp_poly.is_aa(atom.get_parent(), standard=True) and (atom.id == 'CA')]# or atom.id == 'N' or atom.id == 'O')]
         contacts = []
         core = []
@@ -106,7 +107,7 @@ def get_knots(pdb, cutoff, cluster_cutoff, verbosity):
                         printv(clrs['y']+'Unlikely proximity'+clrs['n']+' between residues '+clrs['y']+str(atom.get_parent().id[1])+clrs['n']+' and '+clrs['y']+str(neighbor.get_parent().id[1])+clrs['n']+'!', verbosity)
                         printv(str(d), verbosity)
                         with open('KnotScope.log', 'a') as log:
-                            log.write(str(atom.get_parent().id[1])+','+str(neighbor.get_parent().id[1])+','+str(d)+'\n')
+                            log.write('[CLASH],'+str(atom.get_parent().id[1])+','+str(neighbor.get_parent().id[1])+','+str(d)+'\n')
                         contacts.append(neighbor.get_parent())
                         contacts.append(atom.get_parent())
                         if atom not in core:
@@ -114,7 +115,7 @@ def get_knots(pdb, cutoff, cluster_cutoff, verbosity):
                         if neighbor not in core:
                             core.append(neighbor)
         # Save contacts to pdb file if they exist
-        if contacts:
+        if contacts and genpdb:
             io.set_structure(structure)
             io.save('CONTACTS-'+pdb, strtools.SelectResidues(contacts))
         # Start cluster analysis to separate knots
@@ -175,8 +176,8 @@ def get_knots(pdb, cutoff, cluster_cutoff, verbosity):
             # Combine residue and cluster information and print them user-friendly
             clusterdict = dict(zip(reslist, clustered_res))
             print(clrs['y']+'\nLikely '+str(len(set(clusters[-1])))+' knot(s) found in structure under chosen criteria...'+clrs['n'])
-            temp = []
             n = 0
+            k_lengths = []
             for cl in set(clusterdict.values()):
                 n += 1
                 cluster_residues = []
@@ -184,11 +185,18 @@ def get_knots(pdb, cutoff, cluster_cutoff, verbosity):
                 for res in clusterdict:
                     if clusterdict[res] == cl:
                         cluster_residues.append(res)
+                k_lengths.append(len(cluster_residues))
                 print(clrs['y']+', '.join([str(a) for a in cluster_residues])+clrs['n'])
+                with open('KnotScope.log', 'a') as log:
+                    log.write('[K'+str(n)+'-RES],'+','.join([str(a) for a in cluster_residues])+'\n')
+                    log.write('[K'+str(n)+'-LEN],'+str(len(cluster_residues))+'\n')
+            with open('KnotScope.log', 'a') as log:
+                log.write('[SUM],str,'+pdb+',ca_clash,'+str(len(core))+',nknots,'+str(len(set(clusters[-1])))+',longest,'+str(max(k_lengths))+'\n')
+            return clusterdict
         else:
             print(clrs['g']+'No CA distances under '+str(cutoff)+' angstrons found'+clrs['n']+'!\n')
             with open('KnotScope.log', 'a') as log:
-                log.write('No contacts found!\n')
+                log.write('[SUM],str,'+pdb+',ca_clash,0,nknots,0,longest,0\n')
 
         del pdb_name, structure, nchains, contacts
     elif pdb.startswith('CONTACTS-'):
@@ -229,6 +237,12 @@ def main():
                         default=0,
                         help='Controls verbosity\n')
 
+    parser.add_argument('-p', '--genpdb',
+                        dest='genpdb',
+                        action='count',
+                        default=0,
+                        help='Defines whether pdbs should be generated.\n')
+
     parser.add_argument('-c', '--cutoff',
                         dest='cutoff',
                         type=float, default=3.2,
@@ -247,18 +261,27 @@ def main():
     verbosity = args.verbosity
     cutoff = args.cutoff
     cluster_cutoff = args.cluster_cutoff
+    genpdb = args.genpdb
+    if genpdb == 1:
+        genpdb = True
+    elif genpdb == 0:
+        genpdb = False
 
-    with open('KnotScope.log', 'w+'):
-        pass
+    now = str(time.strftime("%d-%m-%Y@%H.%M.%S"))
+
+    with open('KnotScope.log', 'w+') as f:
+        f.write('[KNOTSCOPE LOG],'+now+'\n')
+        f.write('[CRITERIA],cutoff,'+str(cutoff)+',cluster_cutoff,'+str(cluster_cutoff)+',genpdb,'+str(genpdb)+'\n')
     if os.path.isdir(args.files):
         for pdb_file in os.listdir(args.files):
-            get_knots(pdb_file, cutoff, cluster_cutoff, verbosity)
+            get_knots(pdb_file, cutoff, cluster_cutoff, genpdb, verbosity)
     elif os.path.isfile(args.files):
-        get_knots(args.files, cutoff, cluster_cutoff, verbosity)
+        get_knots(args.files, cutoff, cluster_cutoff, genpdb, verbosity)
     else:
         raise FormatError('Please provide either a pdb file or a valid path to files')
 
 
 # Execute
 ###############################################################################
-main()
+if __name__ == "__main__":
+    main()

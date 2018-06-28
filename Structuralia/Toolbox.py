@@ -112,7 +112,9 @@ class SelectAtoms(bpp.Select):
 
 # Functions
 ###############################################################################
-
+def printv(text, verbosity):
+    if verbosity == 1:
+        print(text)
 
 # @timed
 def get_nr_list(cutoff):
@@ -214,8 +216,7 @@ def parse_pdb_structure(pdb):
         except:
             print("Structure "+pdb_name+" could not be strictly parsed.")
         return pdb_name, structure, nchains
-    else:
-        print(clrs['y']+pdb+clrs['n']+' not a pdb-related structure format.'+clrs['r']+' SKIPPING!'+clrs['n'])
+
 
 
 
