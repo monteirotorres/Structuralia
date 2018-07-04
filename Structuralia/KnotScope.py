@@ -190,13 +190,18 @@ def get_knots(pdb, cutoff, cluster_cutoff, genpdb, verbosity):
                 with open('KnotScope.log', 'a') as log:
                     log.write('[K'+str(n)+'-RES],'+','.join([str(a) for a in cluster_residues])+'\n')
                     log.write('[K'+str(n)+'-LEN],'+str(len(cluster_residues))+'\n')
+            if clusterdict:
+                nknots = len(set(list(clusterdict.values())))
+            else:
+                nknots = 0
+            maxklength = max(k_lengths)
             with open('KnotScope.log', 'a') as log:
-                log.write('[SUM],str,'+pdb+',ca_clash,'+str(len(core))+',nknots,'+str(len(set(clusters[-1])))+',longest,'+str(max(k_lengths))+'\n')
-            return clusterdict
+                log.write('[SUM],str,'+pdb+',ca_clash,'+str(len(core))+',nknots,'+str(nknots)+',maxklength,'+str(maxklength)+'\n')
+            return clusterdict, nknots, maxklength
         else:
             print(clrs['g']+'No CA distances under '+str(cutoff)+' angstrons found'+clrs['n']+'!\n')
             with open('KnotScope.log', 'a') as log:
-                log.write('[SUM],str,'+pdb+',ca_clash,0,nknots,0,longest,0\n')
+                log.write('[SUM],str,'+pdb+',ca_clash,0,nknots,0,maxklength,0\n')
 
         del pdb_name, structure, nchains, contacts
     elif pdb.startswith('CONTACTS-'):
@@ -262,6 +267,7 @@ def main():
     cutoff = args.cutoff
     cluster_cutoff = args.cluster_cutoff
     genpdb = args.genpdb
+
     if genpdb == 1:
         genpdb = True
     elif genpdb == 0:
